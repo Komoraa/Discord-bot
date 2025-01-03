@@ -1,11 +1,11 @@
 from config import *
 import discord
-#from discord.ext import tasks, commands
+from discord.ext import commands
 
 intents = discord.Intents.default()
 intents.message_content = True
 
-client = discord.Client(intents=intents)
+client = discord.Client(command_prefix='!', intents=intents)
 def get_temp():
     try:
         # Read the temperature from the Raspberry Pi's system file
@@ -20,15 +20,9 @@ def get_temp():
 async def on_ready():
     print(f'We have logged in as {client.user}')
 
-@client.event
-async def on_message(message):
-    # Don't let the bot reply to itself
-    if message.author == client.user:
-        return
-
-    # Command to get the temperature
-    if message.content.startswith('!temp'):
-        temp = get_temp()
-        await message.channel.send(f"The current Raspberry Pi temperature is {temp}°C")
+@client.command()
+async def temp(ctx):
+    temperature = get_temp()
+    await ctx.send(f"The current Raspberry Pi temperature is {temperature}°C")
 
 client.run(token)
