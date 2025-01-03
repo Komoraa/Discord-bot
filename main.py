@@ -5,7 +5,7 @@ from discord.ext import commands
 intents = discord.Intents.default()
 intents.message_content = True
 
-client = discord.Client(command_prefix='!', intents=intents)
+client = commands.Bot(command_prefix='!', intents=intents)
 def get_temp():
     try:
         # Read the temperature from the Raspberry Pi's system file
