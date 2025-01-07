@@ -52,7 +52,7 @@ async def list_events(ctx):
     for event in events:
         users_list = []
         async for user in event.users():
-            users_list.append(user)
+            users_list.append(user.mention)
         details = f"**{event.name}**\n> Starts: {event.start_time}\n> Ends: {event.end_time or 'N/A'}\n> User_list: {users_list}"
         event_details.append(details)
 
