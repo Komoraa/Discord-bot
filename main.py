@@ -7,6 +7,7 @@ import sys
 
 intents = discord.Intents.default()
 intents.message_content = True
+intents.guild_scheduled_events = True
 client = commands.Bot(command_prefix='!', intents=intents)
 
 def get_temp():
@@ -16,10 +17,6 @@ def get_temp():
         return round(int(temperature) / 1000, 2)
     except Exception as e:
         return f"Error reading temperature: {e}"
-
-def restart_bot():
-    print("Restarting bot...")
-    os.execv(__file__, ['python3'] + sys.argv)
 
 @client.event
 async def on_ready():
@@ -38,10 +35,26 @@ async def ping(ctx):
 @client.command()
 async def SensIstnienia(ctx):
     await ctx.send(f"https://cdn.discordapp.com/attachments/913365628285489182/1034156679689928724/caption.gif?ex=677e0d36&is=677cbbb6&hm=272607044a4cef0477c1ff3df1d4573b1789acfd366889db41b0d7e45e6c249e&")
-while True:
-    try:
-        client.run(token)
-    except Exception as e:
-        print(f"Error occurred: {e}")
-        time.sleep(60)
-        restart_bot()
+
+@client.command()
+async def list_events(ctx):
+    guild = ctx.guild
+    if not guild:
+        await ctx.send("This command can only be used in a server.")
+        return
+
+    events = guild.scheduled_events
+    if not events:
+        await ctx.send("No scheduled events found.")
+        return
+
+    # Build the list of events
+    event_details = []
+    for event in events:
+        details = f"**{event.name}**\n> Starts: {event.start_time}\n> Ends: {event.end_time or 'N/A'}\n> Status: {event.status}"
+        event_details.append(details)
+
+    # Send the list to the channel
+    await ctx.send("\n\n".join(event_details))
+
+client.run(token)
