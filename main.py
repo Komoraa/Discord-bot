@@ -35,3 +35,4 @@ try:
 except Exception as e:
     print(f"Error occurred: {e}")
     time.sleep(60)
+    restart_bot()
