@@ -48,13 +48,14 @@ async def list_events(ctx):
         await ctx.send("No scheduled events found.")
         return
 
-    # Build the list of events
     event_details = []
     for event in events:
-        details = f"**{event.name}**\n> Starts: {event.start_time}\n> Ends: {event.end_time or 'N/A'}\n> Status: {event.status}"
+        users_list = []
+        async for user in event.users():
+            users_list.append(user)
+        details = f"**{event.name}**\n> Starts: {event.start_time}\n> Ends: {event.end_time or 'N/A'}\n> User_list: {users_list}"
         event_details.append(details)
 
-    # Send the list to the channel
     await ctx.send("\n\n".join(event_details))
 
 client.run(token)
