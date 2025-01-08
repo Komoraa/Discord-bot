@@ -9,7 +9,7 @@ intents.guild_scheduled_events = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 utc = datetime.timezone.utc
-ping_time = datetime.time(hour=23, minute=35, tzinfo=utc)
+ping_time = datetime.time(hour=23, minute=42, tzinfo=utc)
 
 def get_temp():
     try:
@@ -49,13 +49,14 @@ class MyCog(commands.Cog):
                 await channel.send("\n\n".join(event_details))
 
     @my_task.before_loop
-    async def before_printer(self):
+    async def before_task(self):
         print('waiting...')
         await self.bot.wait_until_ready()
 
 @bot.event
 async def on_ready():
     print(f'We have logged in as {bot.user}')
+    await bot.add_cog(MyCog(bot))
 
 @bot.command()
 async def temp(ctx):
@@ -93,5 +94,4 @@ async def list_events(ctx):
 
     await ctx.send("\n\n".join(event_details))
 
-bot.add_cog(MyCog(bot))
 bot.run(token)
