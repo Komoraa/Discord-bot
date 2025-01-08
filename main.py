@@ -9,7 +9,7 @@ intents.guild_scheduled_events = True
 client = commands.Bot(command_prefix='!', intents=intents)
 
 utc = datetime.timezone.utc
-ping_time = datetime.time(hour=23, minute=15, tzinfo=utc)
+ping_time = datetime.time(hour=23, minute=21, tzinfo=utc)
 
 def get_temp():
     try:
@@ -20,20 +20,19 @@ def get_temp():
         return f"Error reading temperature: {e}"
 
 class MyCog(commands.Cog):
-    class MyCog(commands.Cog):
-        def __init__(self, bot):
-            self.bot = bot
-            self.my_task = None  # Initialize without starting the loop
+    def __init__(self, bot):
+        self.bot = bot
+        self.my_task = None  # Initialize without starting the loop
 
-        def cog_unload(self):
-            if self.my_task and self.my_task.is_running():
-                self.my_task.cancel()
+    def cog_unload(self):
+        if self.my_task and self.my_task.is_running():
+            self.my_task.cancel()
 
-        @commands.Cog.listener()
-        async def on_ready(self):
-            if not self.my_task or not self.my_task.is_running():
-                self.my_task = self.my_task()
-                self.my_task.start()
+    @commands.Cog.listener()
+    async def on_ready(self):
+        if not self.my_task or not self.my_task.is_running():
+            self.my_task = self.my_task()
+            self.my_task.start()
 
     @tasks.loop(time=ping_time)
     async def my_task(self):
