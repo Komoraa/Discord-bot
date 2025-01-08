@@ -1,14 +1,15 @@
 from config import *
 import discord
-from discord.ext import commands
-import time
-import os
-import sys
+from discord.ext import commands, tasks
+import datetime
 
 intents = discord.Intents.default()
 intents.message_content = True
 intents.guild_scheduled_events = True
 client = commands.Bot(command_prefix='!', intents=intents)
+
+utc = datetime.timezone.utc
+ping_time = datetime.time(hour=12, minute=0, tzinfo=utc)
 
 def get_temp():
     try:
@@ -17,6 +18,34 @@ def get_temp():
         return round(int(temperature) / 1000, 2)
     except Exception as e:
         return f"Error reading temperature: {e}"
+
+class MyCog(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+        self.my_task.start()
+
+    def cog_unload(self):
+        self.my_task.cancel()
+
+    @tasks.loop(time=ping_time)
+    async def my_task(self):
+        now = datetime.datetime.now(utc)
+        if now.weekday() == 3: #set day 0 is monday
+            channel = self.bot.get_channel(channel_id)
+            if channel:
+                guild = self.bot.get_guild(channel_id)
+                events = await guild.fetch_scheduled_events()
+                channel = self.bot.get_channel(channel_id)
+                event_details = []
+                for event in events:
+                    users_list = []
+                    async for user in event.users():
+                        users_list.append(user.mention)
+                    details = f"**{event.name}**\n> Starts: {event.start_time}\n> Ends: {event.end_time or 'N/A'}\n> User_list: {users_list}"
+                    event_details.append(details)
+                await channel.send(f"**Cotygodniowa przypominajka** \n\n")
+                await channel.send("\n\n".join(event_details))
+
 
 @client.event
 async def on_ready():
@@ -33,7 +62,7 @@ async def ping(ctx):
     await ctx.send(f"{user.mention}")
 
 @client.command()
-async def SensIstnienia(ctx):
+async def sens_istnienia(ctx):
     await ctx.send(f"https://cdn.discordapp.com/attachments/913365628285489182/1034156679689928724/caption.gif?ex=677e0d36&is=677cbbb6&hm=272607044a4cef0477c1ff3df1d4573b1789acfd366889db41b0d7e45e6c249e&")
 
 @client.command()
