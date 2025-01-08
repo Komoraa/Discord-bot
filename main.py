@@ -2,6 +2,7 @@ from config import *
 import discord
 from discord.ext import commands, tasks
 import datetime
+import asyncio
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -64,9 +65,11 @@ async def temp(ctx):
     await ctx.send(f"The current Raspberry Pi temperature is {temperature}°C")
 
 @bot.command()
-async def ping(ctx):
+async def ping(ctx, arg):
     user = await bot.fetch_user(165763943552253952)
-    await ctx.send(f"{user.mention}")
+    for i in range (arg):
+        await ctx.send(f"{user.mention}")
+        await asyncio.sleep(0.5)
 
 @bot.command()
 async def sens_istnienia(ctx):
