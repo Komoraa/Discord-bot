@@ -46,7 +46,6 @@ class MyCog(commands.Cog):
                 await channel.send(f"**Cotygodniowa przypominajka** \n\n")
                 await channel.send("\n\n".join(event_details))
 
-
 @client.event
 async def on_ready():
     print(f'We have logged in as {client.user}')
