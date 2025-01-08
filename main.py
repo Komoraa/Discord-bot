@@ -66,7 +66,7 @@ async def temp(ctx):
 @bot.command()
 async def ping(ctx, arg):
     user = await bot.fetch_user(165763943552253952)
-    for i in range (arg):
+    for i in range (int(arg)):
         await ctx.send(f"{user.mention}")
 
 @bot.command()
