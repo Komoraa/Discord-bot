@@ -9,7 +9,7 @@ intents.guild_scheduled_events = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 utc = datetime.timezone.utc
-ping_time = datetime.time(hour=23, minute=21, tzinfo=utc)
+ping_time = datetime.time(hour=23, minute=32, tzinfo=utc)
 
 def get_temp():
     try:
