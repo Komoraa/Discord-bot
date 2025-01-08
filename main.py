@@ -30,7 +30,7 @@ class MyCog(commands.Cog):
     @tasks.loop(time=ping_time)
     async def my_task(self):
         now = datetime.datetime.now(utc)
-        if now.weekday() == 3: #set day 0 is monday
+        if now.weekday() == 2: #set day 0 is monday
             channel = self.bot.get_channel(channel_id)
             if channel:
                 guild = self.bot.get_guild(channel_id)
