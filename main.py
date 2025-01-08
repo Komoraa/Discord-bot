@@ -9,7 +9,7 @@ intents.guild_scheduled_events = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 utc = datetime.timezone.utc
-ping_time = datetime.time(hour=23, minute=33, tzinfo=utc)
+ping_time = datetime.time(hour=23, minute=35, tzinfo=utc)
 
 def get_temp():
     try:
@@ -30,7 +30,6 @@ class MyCog(commands.Cog):
 
     @tasks.loop(time=ping_time)
     async def my_task(self):
-        await self.bot.wait_until_ready()
         now = datetime.datetime.now(utc)
         channel = self.bot.get_channel(channel_id)
         print("TUTAJ")
@@ -48,6 +47,11 @@ class MyCog(commands.Cog):
                     event_details.append(details)
                 await channel.send(f"**Cotygodniowa przypominajka** \n\n")
                 await channel.send("\n\n".join(event_details))
+
+    @my_task.before_loop
+    async def before_printer(self):
+        print('waiting...')
+        await self.bot.wait_until_ready()
 
 @bot.event
 async def on_ready():
