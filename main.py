@@ -6,7 +6,7 @@ import datetime
 intents = discord.Intents.default()
 intents.message_content = True
 intents.guild_scheduled_events = True
-client = commands.Bot(command_prefix='!', intents=intents)
+bot = commands.Bot(command_prefix='!', intents=intents)
 
 utc = datetime.timezone.utc
 ping_time = datetime.time(hour=23, minute=21, tzinfo=utc)
@@ -22,20 +22,15 @@ def get_temp():
 class MyCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.my_task = None  # Initialize without starting the loop
+        self.my_task.start()
 
     def cog_unload(self):
         if self.my_task and self.my_task.is_running():
             self.my_task.cancel()
 
-    @commands.Cog.listener()
-    async def on_ready(self):
-        if not self.my_task or not self.my_task.is_running():
-            self.my_task = self.my_task()
-            self.my_task.start()
-
     @tasks.loop(time=ping_time)
     async def my_task(self):
+        await self.bot.wait_until_ready()
         now = datetime.datetime.now(utc)
         channel = self.bot.get_channel(channel_id)
         print("TUTAJ")
@@ -54,25 +49,30 @@ class MyCog(commands.Cog):
                 await channel.send(f"**Cotygodniowa przypominajka** \n\n")
                 await channel.send("\n\n".join(event_details))
 
-@client.event
-async def on_ready():
-    print(f'We have logged in as {client.user}')
+    @printer.before_loop
+    async def before_printer(self):
+        print('waiting...')
+        await self.bot.wait_until_ready()
 
-@client.command()
+@bot.event
+async def on_ready():
+    print(f'We have logged in as {bot.user}')
+
+@bot.command()
 async def temp(ctx):
     temperature = get_temp()
     await ctx.send(f"The current Raspberry Pi temperature is {temperature}°C")
 
-@client.command()
+@bot.command()
 async def ping(ctx):
-    user = await client.fetch_user(165763943552253952)
+    user = await bot.fetch_user(165763943552253952)
     await ctx.send(f"{user.mention}")
 
-@client.command()
+@bot.command()
 async def sens_istnienia(ctx):
     await ctx.send(f"https://cdn.discordapp.com/attachments/913365628285489182/1034156679689928724/caption.gif?ex=677e0d36&is=677cbbb6&hm=272607044a4cef0477c1ff3df1d4573b1789acfd366889db41b0d7e45e6c249e&")
 
-@client.command()
+@bot.command()
 async def list_events(ctx):
     guild = ctx.guild
     if not guild:
@@ -94,5 +94,5 @@ async def list_events(ctx):
 
     await ctx.send("\n\n".join(event_details))
 
-client.add_cog(MyCog(client))
-client.run(token)
+bot.add_cog(MyCog(bot))
+bot.run(token)
