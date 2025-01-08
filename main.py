@@ -9,7 +9,7 @@ intents.guild_scheduled_events = True
 client = commands.Bot(command_prefix='!', intents=intents)
 
 utc = datetime.timezone.utc
-ping_time = datetime.time(hour=17, minute=0, tzinfo=utc)
+ping_time = datetime.time(hour=19, minute=0, tzinfo=utc)
 
 def get_temp():
     try:
@@ -32,6 +32,7 @@ class MyCog(commands.Cog):
         now = datetime.datetime.now(utc)
         if now.weekday() == 2: #set day 0 is monday
             channel = self.bot.get_channel(channel_id)
+            print("TUTAJ")
             if channel:
                 guild = self.bot.get_guild(server_id)
                 events = await guild.fetch_scheduled_events()
