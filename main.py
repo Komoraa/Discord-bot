@@ -64,10 +64,9 @@ async def temp(ctx):
     await ctx.send(f"The current Raspberry Pi temperature is {temperature}°C")
 
 @bot.command()
-async def ping(ctx, arg):
+async def ping(ctx):
     user = await bot.fetch_user(165763943552253952)
-    for i in range (int(arg)):
-        await ctx.send(f"{user.mention}")
+    await ctx.send(f"{user.mention}")
 
 @bot.command()
 async def sens_istnienia(ctx):
