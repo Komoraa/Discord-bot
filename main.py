@@ -68,6 +68,7 @@ async def ping(ctx):
     user = await bot.fetch_user(165763943552253952)
     await ctx.send(f"{user.mention}")
 
+
 @bot.command()
 async def sens_istnienia(ctx):
     await ctx.send(f"https://cdn.discordapp.com/attachments/913365628285489182/1034156679689928724/caption.gif?ex=677e0d36&is=677cbbb6&hm=272607044a4cef0477c1ff3df1d4573b1789acfd366889db41b0d7e45e6c249e&")
