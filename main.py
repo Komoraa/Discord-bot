@@ -2,6 +2,7 @@ from config import *
 import discord
 from discord.ext import commands, tasks
 import datetime, calendar, time
+from datetime import timedelta
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -9,7 +10,7 @@ intents.guild_scheduled_events = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 utc = datetime.timezone.utc
-ping_time = datetime.time(hour=5, minute=5, tzinfo=utc) #remeber its use utc+0 time
+ping_time = datetime.time(hour=7, minute=0, tzinfo=utc) #remember its utc+0 time
 
 def get_temp():
     try:
@@ -42,19 +43,25 @@ class MyCog(commands.Cog):
 
     @tasks.loop(time=ping_time)
     async def my_task(self):
-        now = datetime.datetime.now(utc)
+        today=datetime.datetime.now(utc)
         channel = self.bot.get_channel(channel_id)
-        if now.weekday() == 6: #set day 0 is monday
-            if channel:
-                guild = self.bot.get_guild(server_id)
-                events = await guild.fetch_scheduled_events()
-                event_details = await get_event_details(events)
+        if channel:
+            guild = self.bot.get_guild(server_id)
+            events = await guild.fetch_scheduled_events()
+            if today.weekday() == 0 and events: #set day 0 is monday
                 await channel.send(f"**Cotygodniowa przypominajka** \n\n")
+            else:
+                soon=today+timedelta(days=2)
+                events = [event for event in events if event.start_time <= soon]
+                if events:
+                    await channel.send(f"**Nadchodzące wydarzenia** \n\n")
+            event_details = await get_event_details(events)
+            if event_details:
                 await channel.send("\n\n".join(event_details))
 
 @bot.event
 async def on_ready():
-    print(f'We have logged in as {bot.user}')
+    print(f'Logged in as {bot.user}')
     await bot.add_cog(MyCog(bot))
 
 @bot.command()
