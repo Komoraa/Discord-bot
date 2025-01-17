@@ -3,7 +3,6 @@ import discord
 from discord.ext import commands, tasks
 import datetime, calendar, time
 from datetime import timedelta
-import asyncio
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -59,12 +58,13 @@ class MyCog(commands.Cog):
             event_details = await get_event_details(events)
             if event_details:
                 await channel.send("\n\n".join(event_details))
-        await asyncio.sleep(1)
 
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
-    await bot.add_cog(MyCog(bot))
+    if 'MyCog' not in bot.cogs:
+        await bot.add_cog(MyCog(bot))
+        print ('cog dodano')
 
 @bot.command()
 async def temp(ctx):
