@@ -64,7 +64,6 @@ async def on_ready():
     print(f'Logged in as {bot.user}')
     if 'MyCog' not in bot.cogs:
         await bot.add_cog(MyCog(bot))
-        print ('cog dodano')
 
 @bot.command()
 async def temp(ctx):
