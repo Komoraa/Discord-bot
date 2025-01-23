@@ -25,9 +25,10 @@ async def get_event_details(events):
     for event in events:
         users_list = []
         async for user in event.users():
-            users_list.append(user.mention)
+            users_list.append(user.mention +', ')
         date=calendar.timegm(time.strptime(str(event.start_time)[:-6], '%Y-%m-%d %H:%M:%S'))
         users_list_string=''.join(users_list)
+        users_list_string=users_list_string[:-2]
         details = f"**{event.name}**\n> Date: <t:{date}:R> \n> Participants: {users_list_string}"
         event_details.append(details)
     return event_details
