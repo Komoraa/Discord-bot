@@ -37,8 +37,9 @@ async def send_event_details(events,ctx):
         users_list_string=''.join(users_list)
         users_list_string=users_list_string[:-2] # remove last ", "
         embed = discord.Embed(
-            title=event.name,
-            color=discord.Color.blue()
+            #title=event.name,
+            color=discord.Color.blue(),
+            description=f"**[{event.name}]({event.url})**"
         )
         if event.cover_image:
             embed.set_image(url=event.cover_image)
