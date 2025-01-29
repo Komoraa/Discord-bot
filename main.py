@@ -1,7 +1,7 @@
 from config import *
 import discord
 from discord.ext import commands, tasks
-import datetime, calendar, time
+import datetime
 from datetime import timedelta
 
 intents = discord.Intents.default()
@@ -23,6 +23,7 @@ def get_temp():
 async def send_event_details(events,ctx):
     sorted_events = sorted(events, key=lambda event: event.start_time)
     event_details=[]
+    ghost_ping_list=[] #emebeds can't ping so need for workaround
     for event in sorted_events:
         users_list = []
         # for 5 and more events get limit rated 
@@ -32,6 +33,7 @@ async def send_event_details(events,ctx):
             users_list.append(user.mention +', ')
         # end_time = time.time()
         # print(f"Execution Time: {end_time - start_time} seconds, loop for {event.name}")
+        ghost_ping_list.append(users_list)
         date=event.start_time
         date=int(date.timestamp())
         users_list_string=''.join(users_list)
@@ -50,6 +52,10 @@ async def send_event_details(events,ctx):
         event_details.append(embed)
     for event in event_details:
         await ctx.send(embed=event)
+
+    #I hate it
+    ghost_message= await ctx.send(f"{users_list}")
+    await ghost_message.delete()
 
 class MyCog(commands.Cog):
     def __init__(self, bot):
