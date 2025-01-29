@@ -33,7 +33,7 @@ async def send_event_details(events,ctx):
             users_list.append(user.mention +', ')
         # end_time = time.time()
         # print(f"Execution Time: {end_time - start_time} seconds, loop for {event.name}")
-        ghost_ping_list.append(users_list)
+        ghost_ping_list.append(str(users_list))
         date=event.start_time
         date=int(date.timestamp())
         users_list_string=''.join(users_list)
