@@ -23,17 +23,16 @@ def get_temp():
 async def send_event_details(events,ctx):
     sorted_events = sorted(events, key=lambda event: event.start_time)
     event_details=[]
-    ghost_ping_list=[] #emebeds can't ping so need for workaround
+    ghost_ping_list=[] #embeds can't ping so need for workaround
     for event in sorted_events:
         users_list = []
         # for 5 and more events get limit rated 
         # TODO fix it 
         # start_time = time.time()
         async for user in event.users():
-            users_list.append(user.mention +', ')
+            users_list.append(user.mention +', ')   
         # end_time = time.time()
         # print(f"Execution Time: {end_time - start_time} seconds, loop for {event.name}")
-        ghost_ping_list.append(str(users_list))
         date=event.start_time
         date=int(date.timestamp())
         users_list_string=''.join(users_list)
@@ -49,12 +48,12 @@ async def send_event_details(events,ctx):
             embed.add_field(name="Description", value=event.description, inline=False)
         embed.add_field(name="Participants", value=users_list_string)
         embed.add_field(name="Date", value=f"<t:{date}:R>")
+        ghost_ping_list.append(users_list) #eh
         event_details.append(embed)
     for event in event_details:
         await ctx.send(embed=event)
-
     #I hate it
-    ghost_message= await ctx.send(f"{users_list}")
+    ghost_message= await ctx.send(f"{ghost_ping_list}")
     await ghost_message.delete()
 
 class MyCog(commands.Cog):
