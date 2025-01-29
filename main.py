@@ -10,7 +10,7 @@ intents.guild_scheduled_events = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 utc = datetime.timezone.utc
-ping_time = datetime.time(hour=7, minute=0, tzinfo=utc) #remember its utc+0 time
+ping_time = datetime.time(hour=7, minute=0, tzinfo=utc) #its utc+0 time
 
 def get_temp():
     try:
@@ -21,14 +21,15 @@ def get_temp():
         return f"Error reading temperature: {e}"
 
 async def get_event_details(events):
+    sorted_events = sorted(events, key=lambda event: event.start_time)
     event_details=[]
-    for event in events:
+    for event in sorted_events:
         users_list = []
         async for user in event.users():
             users_list.append(user.mention +', ')
-        date=calendar.timegm(time.strptime(str(event.start_time)[:-6], '%Y-%m-%d %H:%M:%S'))
+        date=calendar.timegm(time.strptime(str(event.start_time)[:-6], '%Y-%m-%d %H:%M:%S')) #remove "+00:00" and convert it to unix timestamp
         users_list_string=''.join(users_list)
-        users_list_string=users_list_string[:-2]
+        users_list_string=users_list_string[:-2] # remove last ", " 
         details = f"**{event.name}**\n> Date: <t:{date}:R> \n> Participants: {users_list_string}"
         event_details.append(details)
     return event_details
