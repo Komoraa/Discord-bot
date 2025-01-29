@@ -20,19 +20,35 @@ def get_temp():
     except Exception as e:
         return f"Error reading temperature: {e}"
 
-async def get_event_details(events):
+async def send_event_details(events,ctx):
     sorted_events = sorted(events, key=lambda event: event.start_time)
     event_details=[]
     for event in sorted_events:
         users_list = []
+        # for 5 and more events get limit rated 
+        # TODO fix it 
+        # start_time = time.time()
         async for user in event.users():
             users_list.append(user.mention +', ')
-        date=calendar.timegm(time.strptime(str(event.start_time)[:-6], '%Y-%m-%d %H:%M:%S')) #remove "+00:00" and convert it to unix timestamp
+        # end_time = time.time()
+        # print(f"Execution Time: {end_time - start_time} seconds, loop for {event.name}")
+        date=event.start_time
+        date=int(date.timestamp())
         users_list_string=''.join(users_list)
-        users_list_string=users_list_string[:-2] # remove last ", " 
-        details = f"**{event.name}**\n> Date: <t:{date}:R> \n> Participants: {users_list_string}"
-        event_details.append(details)
-    return event_details
+        users_list_string=users_list_string[:-2] # remove last ", "
+        embed = discord.Embed(
+            title=event.name,
+            color=discord.Color.blue()
+        )
+        if event.cover_image:
+            embed.set_image(url=event.cover_image)
+        if event.description:
+            embed.add_field(name="Description", value=event.description, inline=False)
+        embed.add_field(name="Participants", value=users_list_string)
+        embed.add_field(name="Date", value=f"<t:{date}:R>")
+        event_details.append(embed)
+    for event in event_details:
+        await ctx.send(embed=event)
 
 class MyCog(commands.Cog):
     def __init__(self, bot):
@@ -57,9 +73,7 @@ class MyCog(commands.Cog):
                 events = [event for event in events if event.start_time <= soon]
                 if events:
                     await channel.send(f"**Nadchodzące wydarzenia** \n\n")
-            event_details = await get_event_details(events)
-            if event_details:
-                await channel.send("\n\n".join(event_details))
+            await send_event_details(events,channel)
 
 @bot.event
 async def on_ready():
@@ -93,7 +107,6 @@ async def list_events(ctx):
         await ctx.send("No scheduled events found.")
         return
 
-    event_details = await get_event_details(events)
-    await ctx.send("\n\n".join(event_details))
+    await send_event_details(events,ctx)
 
 bot.run(token)
