@@ -53,8 +53,9 @@ async def send_event_details(events,ctx):
     for event in event_details:
         await ctx.send(embed=event)
     #I hate it
-    ghost_message= await ctx.send(f"{ghost_ping_list}")
-    await ghost_message.delete()
+    if ghost_ping_list:
+        ghost_message= await ctx.send(f"{ghost_ping_list}")
+        await ghost_message.delete()
 
 class MyCog(commands.Cog):
     def __init__(self, bot):
