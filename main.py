@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands, tasks
 import datetime
 from datetime import timedelta
+from discord.ui import Button, View
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -24,15 +25,11 @@ async def send_event_details(events,ctx):
     sorted_events = sorted(events, key=lambda event: event.start_time)
     event_details=[]
     ghost_ping_list=[] #embeds can't ping so need for workaround
+    today=datetime.datetime.now(utc)
     for event in sorted_events:
         users_list = []
-        # for 5 and more events get limit rated 
-        # TODO fix it 
-        # start_time = time.time()
         async for user in event.users():
             users_list.append(user.mention +', ')   
-        # end_time = time.time()
-        # print(f"Execution Time: {end_time - start_time} seconds, loop for {event.name}")
         date=event.start_time
         date=int(date.timestamp())
         users_list_string=''.join(users_list)
@@ -47,12 +44,15 @@ async def send_event_details(events,ctx):
         if event.description:
             embed.add_field(name="Description", value=event.description, inline=False)
         embed.add_field(name="Participants", value=users_list_string)
-        embed.add_field(name="Date", value=f"<t:{date}:R>")
+        if event.start_time > (today + timedelta(days=7)):
+            embed.add_field(name="Date", value=f"<t:{date}:F>")
+        else:
+            embed.add_field(name="Date", value=f"<t:{date}:R>")
         ghost_ping_list.append(users_list) #eh
         event_details.append(embed)
     for event in event_details:
         await ctx.send(embed=event)
-    #I hate it
+    #workaround pinging
     if ghost_ping_list:
         ghost_message= await ctx.send(f"{ghost_ping_list}")
         await ghost_message.delete()
@@ -109,7 +109,7 @@ async def list_events(ctx):
         await ctx.send("This command can only be used in a server.")
         return
 
-    events = guild.scheduled_events
+    events = await guild.fetch_scheduled_events()
     if not events:
         await ctx.send("No scheduled events found.")
         return
