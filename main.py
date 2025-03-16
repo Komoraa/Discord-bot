@@ -97,6 +97,10 @@ async def temp(ctx):
 
 @bot.hybrid_command()
 async def ping(ctx, member: discord.Member, number: int):
+    if number < 1:
+        number = 1
+    if number > 10:
+        number = 10
     for i in range (number):
      await ctx.send(f"{member.mention}")
      await asyncio.sleep(1)
