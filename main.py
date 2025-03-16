@@ -25,7 +25,7 @@ async def send_event_details(events,ctx):
     sorted_events = sorted(events, key=lambda event: event.start_time)
     event_details=[]
     ghost_ping_list=[] #embeds can't ping so need for workaround
-    today=datetime.datetime.now(utc)
+    now=datetime.datetime.now(utc)
     for event in sorted_events:
         users_list = []
         async for user in event.users():
@@ -44,7 +44,7 @@ async def send_event_details(events,ctx):
         if event.description:
             embed.add_field(name="Description", value=event.description, inline=False)
         embed.add_field(name="Participants", value=users_list_string)
-        if event.start_time > (today + timedelta(days=7)):
+        if event.start_time > (now + timedelta(days=7)):
             embed.add_field(name="Date", value=f"<t:{date}:F>")
         else:
             embed.add_field(name="Date", value=f"<t:{date}:R>")
@@ -68,15 +68,17 @@ class MyCog(commands.Cog):
 
     @tasks.loop(time=ping_time)
     async def my_task(self):
-        today=datetime.datetime.now(utc)
+        now=datetime.datetime.now(utc)
         channel = self.bot.get_channel(channel_id)
+        #somehow api maneged sent me event from the past so i guess i need to check for this apparently
+        events = [event for event in events if event.start_time > now] 
         if channel:
             guild = self.bot.get_guild(server_id)
             events = await guild.fetch_scheduled_events()
-            if today.weekday() == 0 and events: #set day 0 is monday
+            if now.weekday() == 0 and events: #set day 0 is monday
                 await channel.send(f"**Cotygodniowa przypominajka** \n\n")
             else:
-                soon=today+timedelta(days=2)
+                soon=now+timedelta(days=2)
                 events = [event for event in events if event.start_time <= soon]
                 if events:
                     await channel.send(f"**Nadchodzące wydarzenia** \n\n")
