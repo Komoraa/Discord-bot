@@ -34,7 +34,7 @@ class ServerStatusCog(commands.Cog):
         if self.check_server_status.is_running():
             self.check_server_status.cancel()
 
-    @tasks.loop(seconds=30)
+    @tasks.loop(seconds=300)
     async def check_server_status(self):
         """Checks the server status and updates messages accordingly."""
         await self.bot.wait_until_ready()
