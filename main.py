@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands, tasks
 import datetime
 from datetime import timedelta
+from mcstatus import JavaServer
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -20,6 +21,70 @@ def get_temp():
         return round(int(temperature) / 1000, 2)
     except Exception as e:
         return f"Error reading temperature: {e}"
+
+class ServerStatusCog(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+        self.server_status_message = None  # Message to update player count
+        self.last_status = None  # Track last known server status
+        self.check_server_status.start()  # Start the background task
+
+    def cog_unload(self):
+        """Stop the task when the cog is unloaded."""
+        if self.check_server_status.is_running():
+            self.check_server_status.cancel()
+
+    @tasks.loop(seconds=30)
+    async def check_server_status(self):
+        """Checks the server status and updates messages accordingly."""
+        await self.bot.wait_until_ready()
+        channel = self.bot.get_channel(channel_id)
+        if channel is None:
+            print("Error: Channel not found.")
+            return
+        
+        try:
+            server = JavaServer.lookup(miencraft_ip)
+            status = server.status()
+            server_online = True
+            player_count = status.players.online
+            max_players = status.players.max
+
+            embed = discord.Embed(
+                title="✅ Minecraft Server is Online",
+                description=f"**Players Online:** {player_count}/{max_players}",
+                color=discord.Color.green()
+            )
+            embed.set_thumbnail(url="https://static.wikia.nocookie.net/minecraft_gamepedia/images/1/12/Grass_Block_JE2.png/revision/latest?cb=20200830142618")
+            embed.set_footer(text="Status updates every 5 minutes")
+
+        except:
+            server_online = False
+            embed = discord.Embed(
+                title="❌ Minecraft Server is Offline",
+                description="**The server is currently unreachable.**",
+                color=discord.Color.red()
+            )
+            embed.set_thumbnail(url="https://cdn-icons-png.freepik.com/512/4225/4225690.png")
+            embed.set_footer(text="Status updates every 5 minutes")
+
+        if self.server_status_message is None:
+        # Send only one message on startup
+            self.server_status_message = await channel.send(embed=embed)
+        elif self.last_status != server_online:
+        # If status changed, send a new message
+            await channel.send(embed=embed)
+
+        # Always update player count in the last known message
+        await self.server_status_message.edit(embed=embed)
+        # Update last known status
+        self.last_status = server_online
+
+    @check_server_status.before_loop
+    async def before_check(self):
+        """Wait until the bot is ready before starting the task."""
+        await self.bot.wait_until_ready()
+
 
 async def send_event_details(events,ctx):
     sorted_events = sorted(events, key=lambda event: event.start_time)
@@ -84,12 +149,15 @@ class MyCog(commands.Cog):
                     await channel.send(f"**Nadchodzące wydarzenia** \n\n")
             await send_event_details(events,channel)
 
+
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
     await bot.tree.sync()
     if 'MyCog' not in bot.cogs:
         await bot.add_cog(MyCog(bot))
+    if 'ServerStatusCog' not in bot.cogs:
+        await bot.add_cog(ServerStatusCog(bot))
 @bot.hybrid_command()
 async def temp(ctx):
     temperature = get_temp()
