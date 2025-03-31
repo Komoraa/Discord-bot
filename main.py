@@ -102,8 +102,8 @@ async def ping(ctx, member: discord.Member, number: int):
     if number > 10:
         number = 10
     for i in range (number):
-     await ctx.send(f"{member.mention}")
-     await asyncio.sleep(1)
+        await ctx.send(f"{member.mention}")
+        await asyncio.sleep(1)
 
 @bot.hybrid_command(description="Why is this still here")
 async def sens_istnienia(ctx):
