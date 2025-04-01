@@ -27,8 +27,26 @@ class ServerStatusCog(commands.Cog):
         self.bot = bot
         self.server_status_message = None  # Message to update player count
         self.last_status = None  # Track last known server status
+        self.bot.loop.create_task(self.send_initial_message())
         self.check_server_status.start()  # Start the background task
 
+    async def send_initial_message(self):
+        """Send an initial status message when the bot starts."""
+        await self.bot.wait_until_ready()  # Ensure bot is ready before sending
+        channel = self.bot.get_channel(channel_id)
+        if channel is None:
+            print("Error: Channel not found.")
+            return
+
+        embed = discord.Embed(
+            title="⌛ Checking Minecraft Server Status...",
+            description="Please wait while we fetch the latest server status.",
+            color=discord.Color.blue()
+        )
+
+        self.server_status_message = await channel.send(embed=embed)
+
+    
     def cog_unload(self):
         """Stop the task when the cog is unloaded."""
         if self.check_server_status.is_running():
@@ -68,15 +86,11 @@ class ServerStatusCog(commands.Cog):
             embed.set_thumbnail(url="https://cdn-icons-png.freepik.com/512/4225/4225690.png")
             embed.set_footer(text="Status updates every 5 minutes")
 
-        if self.server_status_message is None:
-        # Send only one message on startup
-            self.server_status_message = await channel.send(embed=embed)
-        elif self.last_status != server_online:
+        if self.last_status != server_online:
         # If status changed, send a new message
-            await channel.send(embed=embed)
-
-        # Always update player count in the last known message
-        await self.server_status_message.edit(embed=embed)
+            self.server_status_message = await channel.send(embed=embed)
+        else:
+            await self.server_status_message.edit(embed=embed)
         # Update last known status
         self.last_status = server_online
 
