@@ -208,10 +208,16 @@ async def list_events(ctx):
 
     await send_event_details(events,ctx)
 
+#funny
 @bot.event
 async def on_message(message):
-    if "Don't Starve Together" in message.content:
+    if message.author == bot.user:
+        return
+
+    role_name = "Don't Starve Together"
+    role = discord.utils.get(message.guild.roles, name = role_name)
+
+    if role in message.role_mentions or "Don't Starve Together" in message.content:
         await message.channel.send("https://tenor.com/view/kekwtf-gif-18599263")
-    await bot.process_commands(message)
 
 bot.run(token)
