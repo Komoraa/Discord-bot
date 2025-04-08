@@ -208,4 +208,10 @@ async def list_events(ctx):
 
     await send_event_details(events,ctx)
 
+@bot.event
+async def on_message(message):
+    if "Don't Starve Together" in message.content:
+        await message.channel.send("https://tenor.com/view/kekwtf-gif-18599263")
+    await bot.process_commands(message)
+
 bot.run(token)
