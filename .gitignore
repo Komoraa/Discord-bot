@@ -1,5 +1,6 @@
 # My bullshit
 config.py
+event_overrides.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -5,6 +5,9 @@ from discord.ext import commands, tasks
 import datetime
 from datetime import timedelta
 from mcstatus import JavaServer
+import os
+import json
+from zoneinfo import ZoneInfo
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -13,7 +16,40 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 utc = datetime.timezone.utc
 ping_time = datetime.time(hour=7, minute=0, tzinfo=utc) #its utc+0 time
+JSON_FILE = 'event_overrides.json'
 
+def load_overrides():
+    if os.path.exists(JSON_FILE):
+        with open(JSON_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return {}
+
+def save_overrides(overrides):
+    with open(JSON_FILE, 'w', encoding='utf-8') as f:
+        json.dump(overrides, f, indent=4, ensure_ascii=False)
+
+overrides = load_overrides()
+
+def get_overrided_events(events):
+    now = datetime.datetime.now(utc)
+    result = []
+
+    for event in events:
+        event_id = str(event.id)
+        override = overrides.get(event_id, {})
+        override_start = override.get('start_time')
+
+        if override_start:
+            try:
+                parsed_override = datetime.datetime.fromisoformat(override_start)
+                if parsed_override > now:
+                    event.start_time = parsed_override
+            except Exception:
+                pass
+
+        result.append(event)
+
+    return result
 def get_temp():
     try:
         with open("/sys/class/thermal/thermal_zone0/temp", "r") as file:
@@ -100,24 +136,30 @@ class ServerStatusCog(commands.Cog):
         await self.bot.wait_until_ready()
 
 
-async def send_event_details(events,ctx):
+async def send_event_details(events, ctx):
     sorted_events = sorted(events, key=lambda event: event.start_time)
     event_details=[]
     ghost_ping_list=[] #embeds can't ping so need for workaround
     now=datetime.datetime.now(utc)
+
     for event in sorted_events:
         users_list = []
+
         async for user in event.users():
-            users_list.append(user.mention +', ')   
+            users_list.append(user.mention +', ')
+
         date=event.start_time
         date=int(date.timestamp())
+
         users_list_string=''.join(users_list)
         users_list_string=users_list_string[:-2] # remove last ", "
+
         embed = discord.Embed(
             #title=event.name,
             color=discord.Color.blue(),
             description=f"**[{event.name}]({event.url})**"
         )
+
         if event.cover_image:
             embed.set_image(url=event.cover_image)
         if event.description:
@@ -152,8 +194,10 @@ class MyCog(commands.Cog):
         if channel:
             guild = self.bot.get_guild(server_id)
             events = await guild.fetch_scheduled_events()
+            events = get_overrided_events(events)
             #somehow api maneged sent me event from the past so i guess i need to check for this apparently
             events = [event for event in events if event.start_time > now] 
+
             if now.weekday() == 0 and events: #set day 0 is monday
                 await channel.send(f"**Cotygodniowa przypominajka** \n\n")
             else:
@@ -202,11 +246,53 @@ async def list_events(ctx):
         await ctx.interaction.response.defer()
 
     events = await guild.fetch_scheduled_events()
+    events=get_overrided_events(events)
     if not events:
         await ctx.send("No scheduled events found.")
         return
 
     await send_event_details(events,ctx)
+
+@bot.hybrid_command(name='event_date_fuckery', description='format: "%Y-%m-%d %H:%M" (czas dla Polski - UTC+1 lub UTC+2)', guild=discord.Object(id=server_id))
+async def event_date_fuckery(ctx, event_id: str, start_time: str = None):
+    overrides[event_id] = overrides.get(event_id, {})
+
+    if ctx.interaction:
+        await ctx.interaction.response.defer()
+
+    if start_time:
+        try:
+            # Użycie ZoneInfo do poprawnej obsługi czasu letniego i zimowego
+            poland_tz = ZoneInfo("Europe/Warsaw")
+            parsed_time_pl = datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M").replace(tzinfo=poland_tz)
+            parsed_time_utc = parsed_time_pl.astimezone(utc)
+
+            now = datetime.datetime.now(utc)
+            if parsed_time_utc < now:
+                await ctx.send(f'Nie można ustawić przeszłej daty dla wydarzenia {event_id}.')
+                return
+            
+            # Zapis do pliku w UTC
+            overrides[event_id]['start_time'] = parsed_time_utc.isoformat()
+            save_overrides(overrides)
+
+            # Pobranie nazwy wydarzenia
+            guild = ctx.guild
+            event_name = event_id
+            if guild:
+                try:
+                    event = await guild.fetch_scheduled_event(int(event_id))
+                    event_name = event.name
+                except Exception:
+                    pass
+
+            # Wyświetlenie użytkownikowi daty w czasie polskim
+            formatted_time_pl = parsed_time_pl.strftime("%Y-%m-%d %H:%M")
+            await ctx.send(f'Nadpisano datę dla wydarzenia **{event_name}** na **{formatted_time_pl}** (czas polski).')
+        
+        except ValueError:
+            await ctx.send('Niepoprawny format daty. Użyj formatu YYYY-MM-DD HH:MM.')
+            return
 
 #funny
 @bot.event
