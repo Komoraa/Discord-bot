@@ -324,6 +324,8 @@ async def rotacja(ctx: commands.Context, member: discord.Member):
         await member.move_to(channels[i])
         await asyncio.sleep(1)
 
+    await ctx.followup.send(f"Następnym razem bądź smieszniejszy")
+
 #funny
 @bot.event
 async def on_message(message):
