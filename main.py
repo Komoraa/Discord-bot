@@ -12,6 +12,8 @@ from zoneinfo import ZoneInfo
 intents = discord.Intents.default()
 intents.message_content = True
 intents.guild_scheduled_events = True
+intents.voice_states = True
+intents.members = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 utc = datetime.timezone.utc
@@ -253,7 +255,7 @@ async def list_events(ctx):
 
     await send_event_details(events,ctx)
 
-@bot.hybrid_command(name='event_date_fuckery', description='format: "%Y-%m-%d %H:%M" (czas dla Polski - UTC+1 lub UTC+2)', guild=discord.Object(id=server_id))
+@bot.hybrid_command(name='event_date_fuckery', description='format: "%Y-%m-%d %H:%M"', guild=discord.Object(id=server_id))
 async def event_date_fuckery(ctx, event_id: str, start_time: str = None):
     overrides[event_id] = overrides.get(event_id, {})
 
@@ -288,11 +290,39 @@ async def event_date_fuckery(ctx, event_id: str, start_time: str = None):
 
             # Wyświetlenie użytkownikowi daty w czasie polskim
             formatted_time_pl = parsed_time_pl.strftime("%Y-%m-%d %H:%M")
-            await ctx.send(f'Nadpisano datę dla wydarzenia **{event_name}** na **{formatted_time_pl}** (czas polski).')
+            await ctx.send(f'Nadpisano datę dla wydarzenia **{event_name}** na **{formatted_time_pl}**.')
         
         except ValueError:
             await ctx.send('Niepoprawny format daty. Użyj formatu YYYY-MM-DD HH:MM.')
             return
+
+@bot.hybrid_command(name="schody", description="Użytkownik był nieśmieszny.")
+async def rotacja(ctx: commands.Context, member: discord.Member):
+    guild = ctx.guild
+    channels = [guild.get_channel(cid) for cid in VOICE_CHANNEL_IDS]
+
+    if not member.voice or not member.voice.channel:
+        await ctx.reply("❌ Użytkownik nie jest na żadnym kanale głosowym.", ephemeral=True)
+        return
+
+    start_channel = member.voice.channel
+    if start_channel.id not in VOICE_CHANNEL_IDS:
+        await ctx.reply("❌ Kanał użytkownika nie znajduje się na liście rotacji.", ephemeral=True)
+        return
+
+    await ctx.defer()
+
+    start_index = VOICE_CHANNEL_IDS.index(start_channel.id)
+
+    # na samo dno
+    for i in range(start_index + 1, len(channels)):
+        await member.move_to(channels[i])
+        await asyncio.sleep(1)
+
+    # i do góry
+    for i in range(len(channels) - 2, start_index - 1, -1):
+        await member.move_to(channels[i])
+        await asyncio.sleep(1)
 
 #funny
 @bot.event
