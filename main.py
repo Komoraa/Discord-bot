@@ -336,8 +336,8 @@ async def on_message(message):
     if role in message.role_mentions or "Don't Starve Together" in message.content:
         await message.channel.send("https://tenor.com/view/kekwtf-gif-18599263")
 
-@commands.hybrid_command(name="restart", description="Restart and update")
-@commands.is_owner()
+@bot.hybrid_command(name="restart", description="Restart and update")
+@commands.is_owner() 
 async def updatebot(ctx):
     await ctx.reply("Restart")
     await asyncio.sleep(2)
