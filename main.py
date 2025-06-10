@@ -8,6 +8,7 @@ from mcstatus import JavaServer
 import os
 import json
 from zoneinfo import ZoneInfo
+import subprocess
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -167,10 +168,7 @@ async def send_event_details(events, ctx):
         if event.description:
             embed.add_field(name="Description", value=event.description, inline=False)
         embed.add_field(name="Participants", value=users_list_string)
-        if event.start_time > (now + timedelta(days=7)):
-            embed.add_field(name="Date", value=f"<t:{date}:F>")
-        else:
-            embed.add_field(name="Date", value=f"<t:{date}:R>")
+        embed.add_field(name="Date", value=f"<t:{date}:F>")
         ghost_ping_list.append(users_list) #eh
         event_details.append(embed)
     for event in event_details:
@@ -337,5 +335,12 @@ async def on_message(message):
 
     if role in message.role_mentions or "Don't Starve Together" in message.content:
         await message.channel.send("https://tenor.com/view/kekwtf-gif-18599263")
+
+@commands.hybrid_command(name="restart", description="Restart and update")
+@commands.is_owner()
+async def updatebot(ctx):
+    await ctx.reply("Restart")
+    await asyncio.sleep(2)
+    subprocess.Popen(['bash', 'update_bot.sh'])
 
 bot.run(token)
