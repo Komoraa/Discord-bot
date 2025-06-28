@@ -239,6 +239,10 @@ async def sens_istnienia(ctx):
 async def fisk(ctx):
     await ctx.send(f"https://tenor.com/view/the-kingpin-wilson-fisk-the-kingpin-wilson-fisk-marvel-comics-spider-man-gif-27081152")
 
+@bot.hybrid_command(description="ksiF")
+async def ksif(ctx):
+    await ctx.send("https://cdn.discordapp.com/attachments/913365628285489182/1388092602846281758/reverse.gif")
+
 @bot.hybrid_command(description="List all scheduled events in this server")
 async def list_events(ctx):
     guild = ctx.guild
