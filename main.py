@@ -9,6 +9,7 @@ import os
 import json
 from zoneinfo import ZoneInfo
 import subprocess
+import requests
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -143,7 +144,6 @@ async def send_event_details(events, ctx):
     sorted_events = sorted(events, key=lambda event: event.start_time)
     event_details=[]
     ghost_ping_list=[] #embeds can't ping so need for workaround
-    now=datetime.datetime.now(utc)
 
     for event in sorted_events:
         users_list = []
@@ -207,6 +207,21 @@ class MyCog(commands.Cog):
                     await channel.send(f"**Nadchodzące wydarzenia** \n\n")
             await send_event_details(events,channel)
 
+class MemeCog(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+        self.my_task.start()
+
+    def cog_unload(self):
+        if self.my_task and self.my_task.is_running():
+            self.my_task.cancel()
+
+    @tasks.loop(hours = 1)
+    async def my_task(self):
+        meme_request = requests.get('https://meme-api.com/gimme').json()
+        channel = self.bot.get_channel(channel_id)
+        await channel.send(f"{meme_request["url"]}")
+
 
 @bot.event
 async def on_ready():
@@ -216,6 +231,8 @@ async def on_ready():
         await bot.add_cog(MyCog(bot))
     if 'ServerStatusCog' not in bot.cogs:
         await bot.add_cog(ServerStatusCog(bot))
+    if 'MemeCog' not in bot.cogs:
+        await bot.add_cog(MemeCog(bot))
 @bot.hybrid_command()
 async def temp(ctx):
     temperature = get_temp()
@@ -246,7 +263,7 @@ async def list_events(ctx):
         await ctx.interaction.response.defer()
 
     events = await guild.fetch_scheduled_events()
-    events=get_overrided_events(events)
+    #events=get_overrided_events(events)
     if not events:
         await ctx.send("No scheduled events found.")
         return
