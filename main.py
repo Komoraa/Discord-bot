@@ -219,7 +219,7 @@ class MemeCog(commands.Cog):
     @tasks.loop(hours = 1)
     async def my_task(self):
         meme_request = requests.get('https://meme-api.com/gimme').json()
-        channel = self.bot.get_channel(channel_id)
+        channel = self.bot.get_channel(meme_channel_id)
         await channel.send(f"{meme_request['url']}")
 
 
