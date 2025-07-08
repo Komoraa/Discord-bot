@@ -252,6 +252,14 @@ async def ping(ctx, member: discord.Member, number: int):
 async def sens_istnienia(ctx):
     await ctx.send(f"https://cdn.discordapp.com/attachments/913365628285489182/1034156679689928724/caption.gif?ex=677e0d36&is=677cbbb6&hm=272607044a4cef0477c1ff3df1d4573b1789acfd366889db41b0d7e45e6c249e&")
 
+@bot.hybrid_command(description="Fisk")
+async def fisk(ctx):
+    await ctx.send(f"https://tenor.com/view/the-kingpin-wilson-fisk-the-kingpin-wilson-fisk-marvel-comics-spider-man-gif-27081152")
+
+@bot.hybrid_command(description="ksiF")
+async def ksif(ctx):
+    await ctx.send("https://cdn.discordapp.com/attachments/913365628285489182/1388092602846281758/reverse.gif")
+
 @bot.hybrid_command(description="List all scheduled events in this server")
 async def list_events(ctx):
     guild = ctx.guild
