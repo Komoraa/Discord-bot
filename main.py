@@ -216,9 +216,9 @@ class MemeCog(commands.Cog):
         if self.my_task and self.my_task.is_running():
             self.my_task.cancel()
 
-    @tasks.loop(hours = 1)
+    @tasks.loop(minutes = 243)
     async def my_task(self):
-        meme_request = requests.get('https://meme-api.com/gimme').json()
+        meme_request = requests.get('https://meme-api.com/gimme/dankmemes').json()
         channel = self.bot.get_channel(meme_channel_id)
         await channel.send(f"{meme_request['url']}")
 
