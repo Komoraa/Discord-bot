@@ -10,6 +10,7 @@ import json
 from zoneinfo import ZoneInfo
 import subprocess
 import requests
+import random
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -360,6 +361,10 @@ async def on_message(message):
 
     if role in message.role_mentions or "Don't Starve Together" in message.content:
         await message.channel.send("https://tenor.com/view/kekwtf-gif-18599263")
+
+    meme_channel = bot.get_channel(meme_channel_id)
+    if message.channel == meme_channel and random.randint(0, 5) == 0 and message.attachments:
+        await message.add_reaction(bot.get_emoji(675110692113874974))
 
 @bot.hybrid_command(name="restart", description="Restart and update")
 @commands.is_owner() 
