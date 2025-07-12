@@ -212,6 +212,7 @@ class MemeCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.my_task.start()
+        self.meme_queue = [] 
 
     def cog_unload(self):
         if self.my_task and self.my_task.is_running():
@@ -219,9 +220,13 @@ class MemeCog(commands.Cog):
 
     @tasks.loop(minutes = 243)
     async def my_task(self):
-        meme_request = requests.get('https://meme-api.com/gimme/dankmemes').json()
+        if not self.meme_queue:
+            response = requests.get('https://meme-api.com/gimme/dankmemes/40')
+            data = response.json()
+            self.meme_queue = [meme['url'] for meme in data.get('memes', [])]
         channel = self.bot.get_channel(meme_channel_id)
-        await channel.send(f"{meme_request['url']}")
+        meme_url = self.meme_queue.pop(0)
+        await channel.send(meme_url)
 
 
 @bot.event
@@ -365,6 +370,32 @@ async def on_message(message):
     meme_channel = bot.get_channel(meme_channel_id)
     if message.channel == meme_channel and random.randint(0, 5) == 0 and message.attachments:
         await message.add_reaction(bot.get_emoji(675110692113874974))
+
+@bot.hybrid_command()
+async def play(ctx: commands.Context):
+    if not ctx.author.voice:
+        await ctx.send("You must be in a voice channel to use this command.")
+        return
+
+    channel = ctx.author.voice.channel
+    voice_client = discord.utils.get(bot.voice_clients, guild=ctx.guild)
+
+    if voice_client is None:
+        voice_client = await channel.connect()
+    elif voice_client.channel != channel:
+        await voice_client.move_to(channel)
+
+    if voice_client.is_playing():
+        await ctx.send("Already playing something!")
+        return
+
+    source = discord.FFmpegPCMAudio("song.mp3")
+    voice_client.play(source)
+
+    while voice_client.is_playing():
+        await asyncio.sleep(1)
+
+    await voice_client.disconnect()
 
 @bot.hybrid_command(name="restart", description="Restart and update")
 @commands.is_owner() 
