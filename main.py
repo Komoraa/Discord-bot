@@ -372,7 +372,7 @@ async def on_message(message):
         await message.add_reaction(bot.get_emoji(675110692113874974))
 
 @bot.tree.command()
-async def play(ctx: commands.Context):
+async def play(ctx: discord.Interaction):
     if not ctx.author.voice:
         await ctx.send("You must be in a voice channel to use this command.")
         return
