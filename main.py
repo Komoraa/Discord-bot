@@ -372,13 +372,16 @@ async def on_message(message):
         await message.add_reaction(bot.get_emoji(675110692113874974))
 
 @bot.tree.command()
-async def play(ctx: discord.Interaction):
-    if not ctx.author.voice:
-        await ctx.send("You must be in a voice channel to use this command.")
+async def play(interaction: discord.Interaction):
+    user = interaction.user
+
+    # Sprawdź, czy użytkownik jest w kanale głosowym
+    if not user.voice or not user.voice.channel:
+        await interaction.response.send_message("Musisz być na kanale głosowym.")
         return
 
-    channel = ctx.author.voice.channel
-    voice_client = discord.utils.get(bot.voice_clients, guild=ctx.guild)
+    channel = user.voice.channel
+    voice_client = discord.utils.get(bot.voice_clients, guild=interaction.guild)
 
     if voice_client is None:
         voice_client = await channel.connect()
@@ -386,12 +389,24 @@ async def play(ctx: discord.Interaction):
         await voice_client.move_to(channel)
 
     if voice_client.is_playing():
-        await ctx.send("Already playing something!")
+        await interaction.response.send_message("Już coś gra.")
         return
 
-    source = discord.FFmpegPCMAudio("song.mp3")
-    voice_client.play(source)
-    await asyncio.sleep(1) 
+    def after_playing(error):
+        if error:
+            print("Błąd odtwarzania:", error)
+        else:
+            print("Odtwarzanie zakończone.")
+
+    try:
+        source = discord.FFmpegPCMAudio("song.mp3")
+        voice_client.play(source, after=after_playing)
+    except Exception as e:
+        print("Exception:", e)
+        await interaction.response.send_message("Wystąpił błąd przy odtwarzaniu.")
+        return
+
+    await interaction.response.send_message("Odtwarzam `song.mp3`...")
 
     while voice_client.is_playing():
         await asyncio.sleep(1)
