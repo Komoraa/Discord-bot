@@ -371,7 +371,7 @@ async def on_message(message):
     if message.channel == meme_channel and random.randint(0, 5) == 0 and message.attachments:
         await message.add_reaction(bot.get_emoji(675110692113874974))
 
-@bot.hybrid_command()
+@bot.tree.command()
 async def play(ctx: commands.Context):
     if not ctx.author.voice:
         await ctx.send("You must be in a voice channel to use this command.")
