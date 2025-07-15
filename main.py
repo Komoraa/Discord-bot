@@ -391,6 +391,7 @@ async def play(ctx: commands.Context):
 
     source = discord.FFmpegPCMAudio("song.mp3")
     voice_client.play(source)
+    await asyncio.sleep(1) 
 
     while voice_client.is_playing():
         await asyncio.sleep(1)
