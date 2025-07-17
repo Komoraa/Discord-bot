@@ -11,6 +11,7 @@ from zoneinfo import ZoneInfo
 import subprocess
 import requests
 import random
+import yt_dlp
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -21,7 +22,22 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 utc = datetime.timezone.utc
 ping_time = datetime.time(hour=7, minute=0, tzinfo=utc) #its utc+0 time
+funny_emoji = bot.get_emoji(675110692113874974)
+meme_channel = bot.get_channel(meme_channel_id)
 JSON_FILE = 'event_overrides.json'
+
+YTDL_OPTIONS = {
+    "format": "bestaudio/best",
+    "quiet": True,
+    "no_warnings": True,
+    "default_search": "ytsearch",  # so you can pass a search term too
+    "source_address": "0.0.0.0",
+}
+FFMPEG_OPTIONS = {
+    "options": "-vn"
+}
+
+ytdl = yt_dlp.YoutubeDL(YTDL_OPTIONS)
 
 def load_overrides():
     if os.path.exists(JSON_FILE):
@@ -228,15 +244,14 @@ class MemeCog(commands.Cog):
         meme_url = self.meme_queue.pop(0)
         await channel.send(meme_url)
 
-
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
     await bot.tree.sync()
     if 'MyCog' not in bot.cogs:
         await bot.add_cog(MyCog(bot))
-    if 'ServerStatusCog' not in bot.cogs:
-        await bot.add_cog(ServerStatusCog(bot))
+    # if 'ServerStatusCog' not in bot.cogs:
+    #     await bot.add_cog(ServerStatusCog(bot))
     if 'MemeCog' not in bot.cogs:
         await bot.add_cog(MemeCog(bot))
 @bot.hybrid_command()
@@ -361,24 +376,23 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    role_name = "Don't Starve Together"
-    role = discord.utils.get(message.guild.roles, name = role_name)
+    role = discord.utils.get(message.guild.roles, name = "Don't Starve Together")
 
     if role in message.role_mentions or "Don't Starve Together" in message.content:
         await message.channel.send("https://tenor.com/view/kekwtf-gif-18599263")
 
-    meme_channel = bot.get_channel(meme_channel_id)
     if message.channel == meme_channel and random.randint(0, 5) == 0 and message.attachments:
-        await message.add_reaction(bot.get_emoji(675110692113874974))
+        await message.add_reaction(funny_emoji)
 
 @bot.tree.command()
-async def play(interaction: discord.Interaction):
+async def play(interaction: discord.Interaction, query:str):
     user = interaction.user
 
-    # Sprawdź, czy użytkownik jest w kanale głosowym
     if not user.voice or not user.voice.channel:
         await interaction.response.send_message("Musisz być na kanale głosowym.")
         return
+
+    await interaction.response.defer()
 
     channel = user.voice.channel
     voice_client = discord.utils.get(bot.voice_clients, guild=interaction.guild)
@@ -386,27 +400,32 @@ async def play(interaction: discord.Interaction):
     if voice_client is None:
         voice_client = await channel.connect()
     elif voice_client.channel != channel:
-        await voice_client.move_to(channel)
+        await voice_client.disconnect()
+        voice_client = await channel.connect()
 
     if voice_client.is_playing():
-        await interaction.response.send_message("Już coś gra.")
+        await interaction.followup.send("Już coś gra.")
         return
-
-    def after_playing(error):
-        if error:
-            print("Błąd odtwarzania:", error)
-        else:
-            print("Odtwarzanie zakończone.")
 
     try:
-        source = discord.FFmpegPCMAudio("song.mp3")
-        voice_client.play(source, after=after_playing)
+        info = ytdl.extract_info(query, download=False)
+        if "entries" in info:
+            info = info["entries"][0]
+        url = info["url"]
+        title = info.get("title", "Unknown title")
     except Exception as e:
-        print("Exception:", e)
-        await interaction.response.send_message("Wystąpił błąd przy odtwarzaniu.")
+        await interaction.followup.send(f"Error extracting audio: {e}")
         return
 
-    await interaction.response.send_message("Odtwarzam `song.mp3`...")
+    try:
+        #source = discord.FFmpegPCMAudio("song.mp3")
+        source = discord.FFmpegPCMAudio(url, **FFMPEG_OPTIONS)
+        voice_client.play(source)
+        await interaction.followup.send(f"🎶 Now playing: **{title}**")
+    except Exception as e:
+        print("Exception:", e)
+        await interaction.followup.send("Wystąpił błąd przy odtwarzaniu.")
+        return
 
     while voice_client.is_playing():
         await asyncio.sleep(1)
