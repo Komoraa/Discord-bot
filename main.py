@@ -250,8 +250,8 @@ async def on_ready():
         await bot.add_cog(MyCog(bot))
     # if 'ServerStatusCog' not in bot.cogs:
     #     await bot.add_cog(ServerStatusCog(bot))
-    if 'MemeCog' not in bot.cogs:
-        await bot.add_cog(MemeCog(bot))
+    # if 'MemeCog' not in bot.cogs:
+    #     await bot.add_cog(MemeCog(bot))
 @bot.hybrid_command()
 async def temp(ctx):
     temperature = get_temp()
@@ -429,4 +429,10 @@ async def updatebot(ctx):
     await asyncio.sleep(2)
     subprocess.Popen(['bash', 'update_bot.sh'])
 
+@bot.hybrid_command(name="send_as", description="Restart and update")
+@commands.is_owner() 
+async def send_as(ctx, channel_id: str, contents: str):
+    target_channel = bot.get_channel(int(channel_id))
+    await target_channel.send(contents)
+    await ctx.reply(f"👍")
 bot.run(token)
