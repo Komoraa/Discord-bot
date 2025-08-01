@@ -30,7 +30,7 @@ YTDL_OPTIONS = {
     "format": "bestaudio/best",
     "quiet": True,
     "no_warnings": True,
-    "default_search": "ytsearch",  # so you can pass a search term too
+    "default_search": "ytsearch",
     "source_address": "0.0.0.0",
 }
 FFMPEG_OPTIONS = {
@@ -82,14 +82,14 @@ def get_temp():
 class ServerStatusCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.server_status_message = None  # Message to update player count
-        self.last_status = None  # Track last known server status
+        self.server_status_message = None  
+        self.last_status = None  
         self.bot.loop.create_task(self.send_initial_message())
-        self.check_server_status.start()  # Start the background task
+        self.check_server_status.start() 
 
     async def send_initial_message(self):
         """Send an initial status message when the bot starts."""
-        await self.bot.wait_until_ready()  # Ensure bot is ready before sending
+        await self.bot.wait_until_ready() 
         channel = self.bot.get_channel(channel_id)
         if channel is None:
             print("Error: Channel not found.")
@@ -144,11 +144,9 @@ class ServerStatusCog(commands.Cog):
             embed.set_footer(text="Status updates every 5 minutes")
 
         if self.last_status != server_online:
-        # If status changed, send a new message
             self.server_status_message = await channel.send(embed=embed)
         else:
             await self.server_status_message.edit(embed=embed)
-        # Update last known status
         self.last_status = server_online
 
     @check_server_status.before_loop
@@ -186,7 +184,7 @@ async def send_event_details(events, ctx):
             embed.add_field(name="Description", value=event.description, inline=False)
         embed.add_field(name="Participants", value=users_list_string)
         embed.add_field(name="Date", value=f"<t:{date}:F>")
-        ghost_ping_list.append(users_list) #eh
+        ghost_ping_list.append(users_list) 
         event_details.append(embed)
     for event in event_details:
         await ctx.send(embed=event)
@@ -292,15 +290,15 @@ async def list_events(ctx):
         await ctx.interaction.response.defer()
 
     events = await guild.fetch_scheduled_events()
-    #events=get_overrided_events(events)
+    events=get_overrided_events(events)
     if not events:
         await ctx.send("No scheduled events found.")
         return
 
     await send_event_details(events,ctx)
 
-@bot.hybrid_command(name='event_date_fuckery', description='format: "%Y-%m-%d %H:%M"', guild=discord.Object(id=server_id))
-async def event_date_fuckery(ctx, event_id: str, start_time: str = None):
+@bot.hybrid_command(name='event_date_fix', description='format: "%Y-%m-%d %H:%M"', guild=discord.Object(id=server_id))
+async def event_date_fix(ctx, event_id: str, start_time: str = None):
     overrides[event_id] = overrides.get(event_id, {})
 
     if ctx.interaction:
@@ -308,7 +306,6 @@ async def event_date_fuckery(ctx, event_id: str, start_time: str = None):
 
     if start_time:
         try:
-            # Użycie ZoneInfo do poprawnej obsługi czasu letniego i zimowego
             poland_tz = ZoneInfo("Europe/Warsaw")
             parsed_time_pl = datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M").replace(tzinfo=poland_tz)
             parsed_time_utc = parsed_time_pl.astimezone(utc)
@@ -318,11 +315,9 @@ async def event_date_fuckery(ctx, event_id: str, start_time: str = None):
                 await ctx.send(f'Nie można ustawić przeszłej daty dla wydarzenia {event_id}.')
                 return
             
-            # Zapis do pliku w UTC
             overrides[event_id]['start_time'] = parsed_time_utc.isoformat()
             save_overrides(overrides)
 
-            # Pobranie nazwy wydarzenia
             guild = ctx.guild
             event_name = event_id
             if guild:
@@ -332,7 +327,6 @@ async def event_date_fuckery(ctx, event_id: str, start_time: str = None):
                 except Exception:
                     pass
 
-            # Wyświetlenie użytkownikowi daty w czasie polskim
             formatted_time_pl = parsed_time_pl.strftime("%Y-%m-%d %H:%M")
             await ctx.send(f'Nadpisano datę dla wydarzenia **{event_name}** na **{formatted_time_pl}**.')
         
@@ -358,19 +352,16 @@ async def rotacja(ctx: commands.Context, member: discord.Member):
 
     start_index = VOICE_CHANNEL_IDS.index(start_channel.id)
 
-    # na samo dno
     for i in range(start_index + 1, len(channels)):
         await member.move_to(channels[i])
         await asyncio.sleep(1)
 
-    # i do góry
     for i in range(len(channels) - 2, start_index - 1, -1):
         await member.move_to(channels[i])
         await asyncio.sleep(1)
 
-    await ctx.followup.send(f"Następnym razem bądź smieszniejszy")
+    await ctx.reply(f"Następnym razem bądź smieszniejszy")
 
-#funny
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
@@ -418,7 +409,6 @@ async def play(interaction: discord.Interaction, query:str):
         return
 
     try:
-        #source = discord.FFmpegPCMAudio("song.mp3")
         source = discord.FFmpegPCMAudio(url, **FFMPEG_OPTIONS)
         voice_client.play(source)
         await interaction.followup.send(f"🎶 Now playing: **{title}**")
