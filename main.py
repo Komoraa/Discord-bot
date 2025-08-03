@@ -22,8 +22,8 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 utc = datetime.timezone.utc
 ping_time = datetime.time(hour=7, minute=0, tzinfo=utc) #its utc+0 time
-funny_emoji = bot.get_emoji(675110692113874974)
-meme_channel = bot.get_channel(meme_channel_id)
+funny_emoji = 0
+meme_channel = 0
 JSON_FILE = 'event_overrides.json'
 
 YTDL_OPTIONS = {
@@ -248,6 +248,10 @@ async def on_ready():
     await bot.tree.sync()
     if 'MyCog' not in bot.cogs:
         await bot.add_cog(MyCog(bot))
+    global funny_emoji
+    funny_emoji = bot.get_emoji(675110692113874974)
+    global meme_channel
+    meme_channel = bot.get_channel(meme_channel_id)
     # if 'ServerStatusCog' not in bot.cogs:
     #     await bot.add_cog(ServerStatusCog(bot))
     # if 'MemeCog' not in bot.cogs:
