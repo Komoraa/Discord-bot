@@ -28,7 +28,7 @@ unfunny_user = 0
 JSON_FILE = 'event_overrides.json'
 
 YTDL_OPTIONS = {
-    "format": "bestaudio[abr<=64]/bestaudio[ext=webm]/bestaudio"
+    "format": "bestaudio[abr<=64]/bestaudio[ext=webm]/bestaudio",
     "quiet": True,
     "no_warnings": True,
     "default_search": "ytsearch",
