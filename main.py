@@ -253,7 +253,7 @@ async def on_ready():
     global meme_channel
     meme_channel = bot.get_channel(meme_channel_id)
     global unfunny_user
-    unfunny_user = bot.get_user(380598565329960961)
+    unfunny_user = bot.get_user(165822998039887872)
     # if 'ServerStatusCog' not in bot.cogs:
     #     await bot.add_cog(ServerStatusCog(bot))
     # if 'MemeCog' not in bot.cogs:
