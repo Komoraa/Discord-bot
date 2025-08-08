@@ -31,9 +31,10 @@ YTDL_OPTIONS = {
     "quiet": True,
     "no_warnings": True,
     "default_search": "ytsearch",
-    "source_address": "0.0.0.0",
+    "source_address": "0.0.0.0"
 }
 FFMPEG_OPTIONS = {
+    "before_options": "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5",
     "options": "-vn"
 }
 
@@ -386,7 +387,7 @@ async def on_message(message):
         await message.add_reaction(funny_emoji)
 
 @bot.tree.command()
-async def play(interaction: discord.Interaction, query:str):
+async def play(interaction: discord.Interaction, query: str):
     user = interaction.user
 
     if not user.voice or not user.voice.channel:
@@ -408,23 +409,24 @@ async def play(interaction: discord.Interaction, query:str):
         await interaction.followup.send("Już coś gra.")
         return
 
+    loop = asyncio.get_event_loop()
     try:
-        info = ytdl.extract_info(query, download=False)
+        info = await loop.run_in_executor(None, lambda: ytdl.extract_info(query, download=False))
         if "entries" in info:
             info = info["entries"][0]
         url = info["url"]
         title = info.get("title", "Unknown title")
     except Exception as e:
-        await interaction.followup.send(f"Error extracting audio: {e}")
+        await interaction.followup.send(f"❌ Błąd podczas pobierania audio: {e}")
         return
 
     try:
         source = discord.FFmpegPCMAudio(url, **FFMPEG_OPTIONS)
         voice_client.play(source)
-        await interaction.followup.send(f"🎶 Now playing: **{title}**")
+        await interaction.followup.send(f"🎶 Teraz odtwarzam: **{title}**")
     except Exception as e:
         print("Exception:", e)
-        await interaction.followup.send("Wystąpił błąd przy odtwarzaniu.")
+        await interaction.followup.send("❌ Wystąpił błąd przy odtwarzaniu.")
         return
 
     while voice_client.is_playing():
