@@ -386,6 +386,7 @@ async def on_message(message):
     
     if message.channel == meme_channel and random.randint(0, 5) == 0 and message.attachments:
         await message.add_reaction(funny_emoji)
+        await asyncio.sleep(30)
 
 
 @bot.tree.command()
