@@ -458,4 +458,11 @@ async def send_as(ctx, channel_id: str, contents: str):
     target_channel = bot.get_channel(int(channel_id))
     await target_channel.send(contents)
     await ctx.reply(f"👍")
+
+@bot.hybrid_command(name="set_nick", description="Zmień nick użytkownika na serwerze")
+@commands.is_owner()
+async def set_nick(ctx, user_id: str, *, new_nick: str):
+    member = ctx.guild.get_member(int(user_id))
+    await member.edit(nick=new_nick)
+
 bot.run(token)
