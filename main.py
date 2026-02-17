@@ -315,7 +315,23 @@ async def event_date_fix(ctx, event_id: str, start_time: str = None):
     if start_time:
         try:
             poland_tz = ZoneInfo("Europe/Warsaw")
-            parsed_time_pl = datetime.datetime.strptime(start_time, "%Y-%m-%d %H:%M").replace(tzinfo=poland_tz)
+
+            # próba obsługi formatów: "YYYY-MM-DD HH:MM" and "Y.M.D H:M bo userzy nie umnieją czytać"
+            parsed_time_pl = None
+            parse_errors = []
+            for fmt in ("%Y-%m-%d %H:%M", "%Y.%m.%d %H:%M"):
+                try:
+                    parsed_time_pl = datetime.datetime.strptime(start_time, fmt)
+                    break
+                except ValueError as e:
+                    parse_errors.append(str(e))
+                    continue
+
+            if parsed_time_pl is None:
+                await ctx.send("Coś zjebałeś")
+                raise ValueError("Unsupported date format")
+
+            parsed_time_pl = parsed_time_pl.replace(tzinfo=poland_tz)
             parsed_time_utc = parsed_time_pl.astimezone(utc)
 
             now = datetime.datetime.now(utc)
