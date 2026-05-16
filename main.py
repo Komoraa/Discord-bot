@@ -413,10 +413,9 @@ async def on_message(message):
         response = client.models.generate_content(
         model="gemini-3-flash-preview",
         contents=f"""
-        Odpowiadaj krótko, maksymalnie 40 słów.
+        Odpowiadaj krótko, maksymalnie 40 słów, jesteś botem na discordzie możesz o.
 
         Jeśli użytkownik zada pytanie typu prawda/fałsz
-        lub takie, na które można odpowiedzieć tak/nie,
         odpowiadaj wyłącznie:
         fejur
 
@@ -424,10 +423,7 @@ async def on_message(message):
 
         Wiadomość użytkownika:
         {message.content}
-        """,
-        config=types.GenerateContentConfig(
-            max_output_tokens=400
-        )
+        """
         )
         await message.channel.send(response.text)
 
