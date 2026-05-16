@@ -1,4 +1,5 @@
 import asyncio
+#from xmlrpc import client
 from config import *
 import discord
 from discord.ext import commands, tasks
@@ -13,6 +14,7 @@ import requests
 import random
 import yt_dlp
 import tempfile
+from google import genai
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -256,6 +258,8 @@ async def on_ready():
     meme_channel = bot.get_channel(meme_channel_id)
     global unfunny_user
     unfunny_user = bot.get_user(165822998039887872)
+    global client_ai 
+    client_ai = genai.Client(gemini_api_key)
     # if 'ServerStatusCog' not in bot.cogs:
     #     await bot.add_cog(ServerStatusCog(bot))
     # if 'MemeCog' not in bot.cogs:
@@ -403,6 +407,12 @@ async def on_message(message):
     if message.channel == meme_channel and random.randint(0, 5) == 0 and message.attachments:
         await asyncio.sleep(30)
         await message.add_reaction(funny_emoji)
+    
+    if message.content.lower().startswith('jarvis'):
+        response = client_ai.models.generate_content(
+        model="gemini-3-flash-preview", contents= message.content
+        )
+        await message.channel.send(response.text)
 
 
 @bot.tree.command()

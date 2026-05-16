@@ -8,3 +8,4 @@ VOICE_CHANNEL_IDS = [
     222222222222222222,  
     333333333333333333   
 ]
+gemini_api_key ='your-gemini-api-key-here'
