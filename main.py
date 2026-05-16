@@ -14,7 +14,8 @@ import requests
 import random
 import yt_dlp
 import tempfile
-from google import genai, types
+from google import genai
+from google.genai import types
 
 intents = discord.Intents.default()
 intents.message_content = True
