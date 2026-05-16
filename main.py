@@ -14,7 +14,7 @@ import requests
 import random
 import yt_dlp
 import tempfile
-from google import genai
+from google import genai, types
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -258,8 +258,8 @@ async def on_ready():
     meme_channel = bot.get_channel(meme_channel_id)
     # global unfunny_user
     # unfunny_user = bot.get_user(165822998039887872)
-    global client_ai 
-    client_ai = genai.Client(gemini_api_key)
+    global client 
+    client = genai.Client(gemini_api_key)
     # if 'ServerStatusCog' not in bot.cogs:
     #     await bot.add_cog(ServerStatusCog(bot))
     # if 'MemeCog' not in bot.cogs:
@@ -409,8 +409,12 @@ async def on_message(message):
         await message.add_reaction(funny_emoji)
     
     if message.content.lower().startswith('jarvis'):
-        response = client_ai.models.generate_content(
-        model="gemini-3-flash-preview", contents= message.content
+        response = client.models.generate_content(
+        model="gemini-3-flash-preview",
+        contents=f"Odpowiadaj krótko, maksymalnie 40 słów. Jak ktoś zada pytanie z odpowiedzią prawda bądź fałsz po prostu odpowiadaj 'fejur', nawet jak pytanie będzie po angielsku.\n\n{message.content}",
+        config=types.GenerateContentConfig(
+            max_output_tokens=80
+        )
         )
         await message.channel.send(response.text)
 
