@@ -26,7 +26,7 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 utc = datetime.timezone.utc
 ping_time = datetime.time(hour=7, minute=0, tzinfo=utc) #its utc+0 time
 funny_emoji = 0
-unfunny_user = 0
+# unfunny_user = 0
 JSON_FILE = 'event_overrides.json'
 
 YTDL_OPTIONS = {
@@ -256,8 +256,8 @@ async def on_ready():
     funny_emoji = bot.get_emoji(675110692113874974)
     global meme_channel
     meme_channel = bot.get_channel(meme_channel_id)
-    global unfunny_user
-    unfunny_user = bot.get_user(165822998039887872)
+    # global unfunny_user
+    # unfunny_user = bot.get_user(165822998039887872)
     global client_ai 
     client_ai = genai.Client(gemini_api_key)
     # if 'ServerStatusCog' not in bot.cogs:
@@ -400,9 +400,9 @@ async def on_message(message):
     if role in message.role_mentions or "Don't Starve Together" in message.content:
         await message.channel.send("https://tenor.com/view/kekwtf-gif-18599263")
     
-    if message.author.id == unfunny_user.id and "https://x.com/" in message.content:
-        await message.delete()
-        await message.channel.send(f"{message.author.mention} ☕")
+    # if message.author.id == unfunny_user.id and "https://x.com/" in message.content:
+    #     await message.delete()
+    #     await message.channel.send(f"{message.author.mention} ☕")
     
     if message.channel == meme_channel and random.randint(0, 5) == 0 and message.attachments:
         await asyncio.sleep(30)
