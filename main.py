@@ -260,7 +260,7 @@ async def on_ready():
     # global unfunny_user
     # unfunny_user = bot.get_user(165822998039887872)
     global client 
-    client = genai.Client(gemini_api_key)
+    client = genai.Client(api_key=gemini_api_key)
     # if 'ServerStatusCog' not in bot.cogs:
     #     await bot.add_cog(ServerStatusCog(bot))
     # if 'MemeCog' not in bot.cogs:
