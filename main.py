@@ -325,7 +325,7 @@ async def list_events(ctx):
 @bot.hybrid_command(name='dodaj_komende', description='Dodaj nową komendę', guild=discord.Object(id=server_id))
 async def dodaj_komende(ctx, command_name: str, contents: str):
     custom_commands[command_name] = custom_commands.get(command_name, {})
-    custom_commands[command_name][contents]=contents
+    custom_commands[command_name]['contents']=contents
     save_json(CUSTOM_COMMANDS_JSON_FILE, custom_commands)
     await ctx.send(f'Git majonez szefie')
 
@@ -466,7 +466,7 @@ async def on_message(message):
         user_command = message.content[2:].strip()
         for command in custom_commands:
             if command == user_command:
-                await message.channel.send(custom_commands[command])
+                await message.channel.send(custom_commands[command]['contents'])
                 break
 
 
