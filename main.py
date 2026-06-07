@@ -28,7 +28,8 @@ utc = datetime.timezone.utc
 ping_time = datetime.time(hour=7, minute=0, tzinfo=utc) #its utc+0 time
 funny_emoji = 0
 # unfunny_user = 0
-JSON_FILE = 'event_overrides.json'
+EVENT_OVERRIDES_JSON_FILE = 'event_overrides.json'
+CUSTOM_COMMANDS_JSON_FILE = 'custom_commands.json'
 
 YTDL_OPTIONS = {
     "format": "bestaudio[abr<=64]/bestaudio[ext=webm]/bestaudio",
@@ -44,17 +45,28 @@ FFMPEG_OPTIONS = {
 
 ytdl = yt_dlp.YoutubeDL(YTDL_OPTIONS)
 
-def load_overrides():
-    if os.path.exists(JSON_FILE):
-        with open(JSON_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
+def load_json(json_file):
+    if os.path.exists(json_file):
+        try:
+            with open(json_file, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            # File exists but is empty or contains invalid JSON — treat as empty dict
+            return {}
+        except Exception as e:
+            print(f"Error loading JSON from {json_file}: {e}")
+            return {}
     return {}
 
-def save_overrides(overrides):
-    with open(JSON_FILE, 'w', encoding='utf-8') as f:
-        json.dump(overrides, f, indent=4, ensure_ascii=False)
+def save_json(json_file, data):
+    with open(json_file, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
 
-overrides = load_overrides()
+def save_overrides(overrides):
+    save_json(EVENT_OVERRIDES_JSON_FILE, overrides)
+
+overrides = load_json(EVENT_OVERRIDES_JSON_FILE)
+custom_commands = load_json(CUSTOM_COMMANDS_JSON_FILE)
 
 def get_overrided_events(events):
     now = datetime.datetime.now(utc)
@@ -310,6 +322,15 @@ async def list_events(ctx):
 
     await send_event_details(events,ctx)
 
+@bot.hybrid_command(name='dodaj_komende', description='Dodaj nową komendę', guild=discord.Object(id=server_id))
+async def dodaj_komende(ctx, command_name: str, contents: str):
+    data = {
+        command_name: contents,
+    }
+    save_json(CUSTOM_COMMANDS_JSON_FILE, data)
+    custom_commands.update(data)
+    await ctx.send(f'Git majonez szefie')
+
 @bot.hybrid_command(name='event_date_fix', description='format: "%Y-%m-%d %H:%M"', guild=discord.Object(id=server_id))
 async def event_date_fix(ctx, event_id: str, start_time: str = None):
     overrides[event_id] = overrides.get(event_id, {})
@@ -441,7 +462,14 @@ async def on_message(message):
         )
     )
 
-    await message.channel.send(response.text)
+        await message.channel.send(response.text)
+
+    if message.content.startswith("->"):
+        user_command = message.content[2:].strip()
+        for command in custom_commands:
+            if command == user_command:
+                await message.channel.send(custom_commands[command])
+                break
 
 
 @bot.tree.command()
