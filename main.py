@@ -424,9 +424,9 @@ async def on_message(message):
     #     await message.delete()
     #     await message.channel.send(f"{message.author.mention} ☕")
     
-    if message.channel == meme_channel and random.randint(0, 5) == 0 and message.attachments:
-        await asyncio.sleep(30)
-        await message.add_reaction(funny_emoji)
+    # if message.channel == meme_channel and random.randint(0, 5) == 0 and message.attachments:
+    #     await asyncio.sleep(30)
+    #     await message.add_reaction(funny_emoji)
     
     if message.content.lower().startswith('jarvis'):
 
