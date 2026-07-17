@@ -556,7 +556,7 @@ async def panel_recursion(interaction, message, page, events):
     await message.add_reaction('🔟')
     await message.add_reaction('➡️')
     try:
-        reaction, user = await bot.wait_for('reaction_add', timeout=120.0, check=check)
+        reaction, user = await bot.wait_for('reaction_add', timeout=240.0, check=check)
     except asyncio.TimeoutError:
         await interaction.followup.send(content="Bardzo sie starałeś lecz się ztimeoutowałeś")
     else:
@@ -596,7 +596,7 @@ async def panel_recursion(interaction, message, page, events):
                 def check2(msg):
                     return msg.author == interaction.user and msg.channel == interaction.channel
                 try:
-                    user_message = await bot.wait_for('message', timeout=120.0, check=check2)
+                    user_message = await bot.wait_for('message', timeout=240.0, check=check2)
                 except asyncio.TimeoutError:
                     await interaction.followup.send(content="Bardzo sie starałeś lecz się ztimeoutowałeś")
                 else:
