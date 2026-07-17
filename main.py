@@ -11,11 +11,11 @@ import json
 from zoneinfo import ZoneInfo
 import subprocess
 import requests
-import random
 import yt_dlp
 import tempfile
 from google import genai
 from google.genai import types
+from discord import app_commands
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -329,12 +329,11 @@ async def dodaj_komende(ctx, command_name: str, contents: str):
     save_json(CUSTOM_COMMANDS_JSON_FILE, custom_commands)
     await ctx.send(f'Git majonez szefie')
 
-@bot.hybrid_command(name='event_date_fix', description='format: "%Y-%m-%d %H:%M"', guild=discord.Object(id=server_id))
-async def event_date_fix(ctx, event_id: str, start_time: str = None):
+async def event_date_change(interaction: discord.Interaction, event_id: str, start_time: str):
     overrides[event_id] = overrides.get(event_id, {})
 
-    if ctx.interaction:
-        await ctx.interaction.response.defer()
+    if not interaction.response.is_done():
+        await interaction.response.defer()
 
     if start_time:
         try:
@@ -352,7 +351,7 @@ async def event_date_fix(ctx, event_id: str, start_time: str = None):
                     continue
 
             if parsed_time_pl is None:
-                await ctx.send("Coś zjebałeś")
+                await interaction.followup.send("Coś zjebałeś")
                 raise ValueError("Unsupported date format")
 
             parsed_time_pl = parsed_time_pl.replace(tzinfo=poland_tz)
@@ -360,13 +359,13 @@ async def event_date_fix(ctx, event_id: str, start_time: str = None):
 
             now = datetime.datetime.now(utc)
             if parsed_time_utc < now:
-                await ctx.send(f'Nie można ustawić przeszłej daty dla wydarzenia {event_id}.')
+                await interaction.followup.send(f'Nie można ustawić przeszłej daty dla wydarzenia {event_id}.')
                 return
             
             overrides[event_id]['start_time'] = parsed_time_utc.isoformat()
             save_overrides(overrides)
 
-            guild = ctx.guild
+            guild = interaction.guild
             event_name = event_id
             if guild:
                 try:
@@ -376,11 +375,20 @@ async def event_date_fix(ctx, event_id: str, start_time: str = None):
                     pass
 
             formatted_time_pl = parsed_time_pl.strftime("%Y-%m-%d %H:%M")
-            await ctx.send(f'Nadpisano datę dla wydarzenia **{event_name}** na **{formatted_time_pl}**.')
+            await interaction.followup.send(f'Nadpisano datę dla wydarzenia **{event_name}** na **{formatted_time_pl}**.')
         
         except ValueError:
-            await ctx.send('Niepoprawny format daty. Użyj formatu YYYY-MM-DD HH:MM.')
+            await interaction.followup.send('Niepoprawny format daty. Użyj formatu YYYY-MM-DD HH:MM.')
             return
+
+@bot.tree.command()
+@app_commands.describe(
+    event_id='Skopiuj id wydarzenia klikając w trzy kropki, by mieć tę opcje w discordzie musisz mieć uruchomiony tryb dewelopera ',
+    start_time='Data w formacie: %Y-%m-%d %H:%M np: 2026-07-16 18:00',
+)
+async def event_date_fix(interaction: discord.Interaction, event_id: str, start_time: str):
+    """Podaj datę w formacie: %Y-%m-%d %H:%M np: 2026-07-16 18:00"""
+    await event_date_change(interaction,event_id,start_time)
 
 @bot.hybrid_command(name="schody", description="Użytkownik był nieśmieszny.")
 async def rotacja(ctx: commands.Context, member: discord.Member):
@@ -525,6 +533,87 @@ async def play(interaction: discord.Interaction, query: str):
         await asyncio.sleep(1)
 
     await voice_client.disconnect()
+
+async def panel_recursion(interaction, message, page, events):
+    def check(reaction, user):
+        return user==interaction.user and reaction.message.id == message.id
+    wybrany=-1
+    output=f"Strona numer: {page+1}\n Wybierz wydarzenie:\n"
+    for i in range(10*page,10*page+10):
+        if 0 <= i < len(events):
+            output+=f"  『{i%10+1}』{events[i].name}\n"
+    await message.edit(content=output)
+    await message.add_reaction('⬅️')
+    await message.add_reaction('1️⃣')
+    await message.add_reaction('2️⃣')
+    await message.add_reaction('3️⃣')
+    await message.add_reaction('4️⃣')
+    await message.add_reaction('5️⃣')
+    await message.add_reaction('6️⃣')
+    await message.add_reaction('7️⃣')
+    await message.add_reaction('8️⃣')
+    await message.add_reaction('9️⃣')
+    await message.add_reaction('🔟')
+    await message.add_reaction('➡️')
+    try:
+        reaction, user = await bot.wait_for('reaction_add', timeout=120.0, check=check)
+    except asyncio.TimeoutError:
+        await interaction.followup.send(content="Bardzo sie starałeś lecz się ztimeoutowałeś")
+    else:
+        match reaction.emoji:
+            case '1️⃣':
+                wybrany=0
+            case '2️⃣':
+                wybrany=1
+            case '3️⃣':
+                wybrany=2
+            case '4️⃣':
+                wybrany=3
+            case '5️⃣':
+                wybrany=4
+            case '6️⃣':
+                wybrany=5
+            case '7️⃣':
+                wybrany=6
+            case '8️⃣':
+                wybrany=7
+            case '9️⃣':
+                wybrany=8
+            case '🔟':
+                wybrany=9
+            case '⬅️':
+                if page>0:
+                    page-=1
+            case '➡️':
+                if (page+1)*10 < len(events):
+                    page+=1
+            case _:
+                pass
+        if(wybrany != -1):
+            index=wybrany+page*10
+            if 0 <= index < len(events):
+                await interaction.followup.send(content=f"Wybrano wydarzenie: **{events[index].name}.** Wyślij wiadomość z nową datą tego wydarzenia w formacie **YYYY-MM-DD HH:MM.**")
+                def check2(msg):
+                    return msg.author == interaction.user and msg.channel == interaction.channel
+                try:
+                    user_message = await bot.wait_for('message', timeout=120.0, check=check2)
+                except asyncio.TimeoutError:
+                    await interaction.followup.send(content="Bardzo sie starałeś lecz się ztimeoutowałeś")
+                else:
+                    await event_date_change(interaction, events[index].id,user_message.content)
+        else:
+            await panel_recursion(interaction, message,page, events)
+
+@bot.tree.command()
+async def panel_event_date_fix(interaction: discord.Interaction):
+    """Oddaj się zabawnej czynności wpisywania daty wydarzenia bo discord nie potrafi w swoje własne api, tym razem korzystając z pięknęgo i zaawansowanego panelu"""
+    await interaction.response.defer()
+    guild = interaction.guild
+    events = await guild.fetch_scheduled_events()
+    message = await interaction.followup.send("No czeeeeść")
+    page=0;
+    await panel_recursion(interaction, message, page, events)
+
 
 @bot.hybrid_command(name="restart", description="Restart and update")
 @commands.is_owner() 
