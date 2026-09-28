@@ -25,7 +25,7 @@ intents.members = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 utc = datetime.timezone.utc
-ping_time = datetime.time(hour=7, minute=0, tzinfo=utc) #its utc+0 time
+ping_time = datetime.time(hour=13, minute=0, tzinfo=utc) #its utc+0 time
 funny_emoji = 0
 # unfunny_user = 0
 EVENT_OVERRIDES_JSON_FILE = 'event_overrides.json'
@@ -71,6 +71,7 @@ custom_commands = load_json(CUSTOM_COMMANDS_JSON_FILE)
 def get_overrided_events(events):
     now = datetime.datetime.now(utc)
     result = []
+    overrides = load_json(EVENT_OVERRIDES_JSON_FILE)
 
     for event in events:
         event_id = str(event.id)
@@ -330,6 +331,7 @@ async def dodaj_komende(ctx, command_name: str, contents: str):
     await ctx.send(f'Git majonez szefie')
 
 async def event_date_change(interaction: discord.Interaction, event_id: str, start_time: str):
+    event_id = str(event_id)
     overrides[event_id] = overrides.get(event_id, {})
 
     if not interaction.response.is_done():
