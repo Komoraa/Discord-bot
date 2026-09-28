@@ -25,7 +25,7 @@ intents.members = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 utc = datetime.timezone.utc
-ping_time = datetime.time(hour=13, minute=0, tzinfo=utc) #its utc+0 time
+ping_time = datetime.time(hour=7, minute=1, tzinfo=utc) #its utc+0 time
 funny_emoji = 0
 # unfunny_user = 0
 EVENT_OVERRIDES_JSON_FILE = 'event_overrides.json'
