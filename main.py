@@ -427,7 +427,7 @@ async def on_message(message):
 
     role = discord.utils.get(message.guild.roles, name = "Don't Starve Together")
 
-    if role in message.role_mentions or "Don't Starve Together" in message.content:
+    if role in message.role_mentions or "Don't Starve Together".lower() in message.content.lower():
         await message.channel.send("https://tenor.com/view/kekwtf-gif-18599263")
     
     # if message.author.id == unfunny_user.id and "https://x.com/" in message.content:
