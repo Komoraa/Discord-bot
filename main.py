@@ -428,12 +428,13 @@ async def on_message(message):
 
     role = discord.utils.get(message.guild.roles, name = "Don't Starve Together")
 
-    contl = message.content.lower()
+    cont = message.content
+    contl = cont.lower()
     
     # slopped up regex cause i didn't know the syntax
     tuesday_check = re.search(r"\b(nie\s+)?jest\b(.{0,20})\bwtorek\b", contl)
 
-    if role in message.role_mentions or "Don't Starve Together".lower() in message.content.lower():
+    if role in message.role_mentions or "don't starve together" in contl:
         await message.channel.send("https://tenor.com/view/kekwtf-gif-18599263")
 
     if tuesday_check:
@@ -444,9 +445,9 @@ async def on_message(message):
         between = tuesday_check.group(2)
 
         not_count = before.count("nie") + between.count("nie")
-        says_is_not_tuesday = not_count % 2 == 1
+        says_its_not_tuesday = not_count % 2 == 1
         
-        if is_tuesday != says_is_not_tuesday:
+        if is_tuesday != says_its_not_tuesday:
             await message.add_reaction('✅')
         else:
             await message.add_reaction('❌')
@@ -459,7 +460,7 @@ async def on_message(message):
     #     await asyncio.sleep(30)
     #     await message.add_reaction(funny_emoji)
     
-    if message.content.lower().startswith('jarvis'):
+    if contl.startswith('jarvis'):
 
         response = client.models.generate_content(
         model="gemini-3-flash-preview", #"gemini-3-flash-preview" "gemini-2.5-flash"
@@ -493,7 +494,7 @@ async def on_message(message):
 
         await message.channel.send(response.text)
 
-    if message.content.startswith("->"):
+    if cont.startswith("->"):
         user_command = message.content[2:].strip()
         for command in custom_commands:
             if command == user_command:
