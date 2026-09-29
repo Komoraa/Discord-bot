@@ -429,6 +429,14 @@ async def on_message(message):
 
     if role in message.role_mentions or "Don't Starve Together".lower() in message.content.lower():
         await message.channel.send("https://tenor.com/view/kekwtf-gif-18599263")
+
+    if "jest wtorek" in message.content.lower():
+        weekday = datetime.datetime.today().weekday()
+        # weekday is an integer, 0 means monday, 6 means sunday, etc.
+        if weekday == 1:
+            await message.add_reaction('✅')
+        else:
+            await message.add_reaction('❌')
     
     # if message.author.id == unfunny_user.id and "https://x.com/" in message.content:
     #     await message.delete()
