@@ -16,6 +16,7 @@ import tempfile
 from google import genai
 from google.genai import types
 from discord import app_commands
+import re
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -427,13 +428,25 @@ async def on_message(message):
 
     role = discord.utils.get(message.guild.roles, name = "Don't Starve Together")
 
+    contl = message.content.lower()
+    
+    # slopped up regex cause i didn't know the syntax
+    tuesday_check = re.search(r"\b(nie\s+)?jest\b(.{0,20})\bwtorek\b", contl)
+
     if role in message.role_mentions or "Don't Starve Together".lower() in message.content.lower():
         await message.channel.send("https://tenor.com/view/kekwtf-gif-18599263")
 
-    if "jest wtorek" in message.content.lower():
-        weekday = datetime.datetime.today().weekday()
-        # weekday is an integer, 0 means monday, 6 means sunday, etc.
-        if weekday == 1:
+    if tuesday_check:
+        # 0 means monday, 6 means sunday, etc.
+        is_tuesday = datetime.datetime.today().weekday() == 1
+
+        before = tuesday_check.group(1) or ""
+        between = tuesday_check.group(2)
+
+        not_count = before.count("nie") + between.count("nie")
+        says_is_not_tuesday = not_count % 2 == 1
+        
+        if is_tuesday != says_is_not_tuesday:
             await message.add_reaction('✅')
         else:
             await message.add_reaction('❌')
