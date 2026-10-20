@@ -28,6 +28,7 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 utc = datetime.timezone.utc
 ping_time = datetime.time(hour=7, minute=1, tzinfo=utc) #its utc+0 time
 funny_emoji = 0
+fish_user_list = []
 # unfunny_user = 0
 EVENT_OVERRIDES_JSON_FILE = 'event_overrides.json'
 CUSTOM_COMMANDS_JSON_FILE = 'custom_commands.json'
@@ -434,8 +435,17 @@ async def on_message(message):
     # slopped up regex cause i didn't know the syntax
     tuesday_check = re.search(r"\b(nie\s+)?jest\b(.{0,20})\bwtorek\b", contl)
 
+    if "roboran fish react this user" in message.content and message.reference:
+        fish_message = await message.channel.fetch_message(message.reference.message_id)
+        await fish_message.add_reaction('🐟')
+        await fish_message.reply('https://cdn.discordapp.com/attachments/572823741168484364/1562157604233416715/image.png?ex=6ad8f824&is=6ad7a6a4&hm=8b6ed03fb49aa0e3674767bf79be4cc46ad344b64dc2805d4fb9fbd05295d579&')
+        fish_user_list.append(fish_message.author)
+
     if role in message.role_mentions or "don't starve together" in contl:
         await message.channel.send("https://tenor.com/view/kekwtf-gif-18599263")
+
+    if message.author in fish_user_list:
+        await message.add_reaction('🐟')
 
     if tuesday_check:
         # 0 means monday, 6 means sunday, etc.
@@ -443,7 +453,6 @@ async def on_message(message):
 
         before = tuesday_check.group(1) or ""
         between = tuesday_check.group(2)
-
         not_count = before.count("nie") + between.count("nie")
         says_its_not_tuesday = not_count % 2 == 1
         
